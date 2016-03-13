@@ -12,5 +12,11 @@
         android:layout_height="wrap_content" >
         
     </TableLayout>
+
+    <Button
+        android:id="@+id/createNew"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New" />
             
  </LinearLayout>
