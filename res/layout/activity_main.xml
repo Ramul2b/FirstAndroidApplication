@@ -9,14 +9,27 @@
     <TableLayout
         android:id="@+id/urlTable"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-        
+        android:layout_height="wrap_content" >        
     </TableLayout>
+
+    <Button
+        android:id="@+id/urlLoad"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Button" />
 
     <Button
         android:id="@+id/createNew"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="New" />
+
+    <EditText
+        android:id="@+id/urlNameIn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textEmailAddress" >       
+    </EditText>
             
  </LinearLayout>

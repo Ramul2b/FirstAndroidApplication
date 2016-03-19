@@ -6,8 +6,5 @@
         android:id="@+id/urlAddres"
         android:text="" />
 
-    <TextView
-        android:id="@+id/urlConnect" 
-        android:text="" />
 
 </TableRow>
