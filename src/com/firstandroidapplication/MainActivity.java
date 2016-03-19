@@ -16,23 +16,21 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
-	TableLayout urlTable;
-	Button createNew;
-	Button urlLoad;
-	EditText urlNameIn;
+	TableLayout					urlTable;
+	Button						createNew;
+	Button						urlLoad;
+	EditText					urlNameIn;
 
-	TableRow clearString;
-	TextView urlAddres;
+	TableRow					clearString;
+	TextView					urlAddres;
 
-	SharedPreferences urlNames;
+	SharedPreferences			urlNames;
 
-	LayoutInflater inflater;
+	LayoutInflater				inflater;
 
-	int i = 0;
+	int							i			= 1;
 
-	String valueOfURL_;
-
-	public static final String PREFS_NAME = "PrefeFile";
+	public static final String	PREFS_NAME	= "PrefeFile";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +44,21 @@ public class MainActivity extends Activity {
 
 		urlNameIn = (EditText) findViewById(R.id.urlNameIn);
 
+		// Проверка сохраненных данных: если есть что загружать - оно загрузиться.
+		urlNames = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+
+		boolean exist = true;
+		
+		while(exist == true){
+			if (urlNames.contains("valueOfURL_" + i) == true) {
+				createString(urlNames.getString("valueOfURL_" + i, "0"));
+				i += 1;
+			}
+			
+			else
+				exist = false;
+		}			
+
 		OnClickListener Listener = new OnClickListener() {
 
 			public void onClick(View w) {
@@ -54,25 +67,15 @@ public class MainActivity extends Activity {
 
 				case R.id.createNew:
 
-					i += 1;
+					String textWithURL = urlNameIn.getText().toString();
+					createString(textWithURL);
+					safeURlAdres(textWithURL, i);
 
-					createAndSafe();
+					i += 1;
 
 					break;
 
 				case R.id.urlLoad:
-
-					inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-					clearString = (TableRow) inflater.inflate(
-							R.layout.urlstring, null);
-
-					urlTable.addView(clearString);
-					urlNames = getPreferences(Context.MODE_PRIVATE);
-					String savedTxt = urlNames.getString(PREFS_NAME, "");
-
-					urlAddres = (TextView) findViewById(R.id.urlAddres);
-					urlAddres = (TextView) clearString.getChildAt(0);
-					urlAddres.setText(savedTxt);
 
 					break;
 				}
@@ -85,7 +88,7 @@ public class MainActivity extends Activity {
 
 	}
 
-	public void createAndSafe() {
+	public void createString(String textWithURL) {
 
 		// Создание чистой строчки в таблице.
 		inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -98,8 +101,11 @@ public class MainActivity extends Activity {
 		urlAddres = (TextView) clearString.getChildAt(0);
 
 		// Передача этой ячейке текста.
-		String textWithURL = urlNameIn.getText().toString();
 		urlAddres.setText(textWithURL);
+
+	}
+
+	public void safeURlAdres(String textWithURL, int i) {
 
 		// Запись значений в хранилище.
 		urlNames = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -107,7 +113,6 @@ public class MainActivity extends Activity {
 
 		edit.putString("valueOfURL_" + i, textWithURL);
 		edit.apply();
-
 	}
 
 }
