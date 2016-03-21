@@ -5,6 +5,10 @@
     <TextView 
         android:id="@+id/urlAddres"
         android:text="" />
+    
+    <TextView 
+        android:id="@+id/urlConnection"
+        android:text="" />
 
 
 </TableRow>

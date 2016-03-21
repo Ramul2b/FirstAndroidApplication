@@ -13,10 +13,10 @@
     </TableLayout>
 
     <Button
-        android:id="@+id/urlLoad"
+        android:id="@+id/urlCheck"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Button" />
+        android:text="Check" />
 
     <Button
         android:id="@+id/createNew"
