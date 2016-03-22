@@ -27,30 +27,30 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-	TableLayout urlTable;
-	Button createNew;
-	Button urlCheck;
-	EditText urlNameIn;
+	TableLayout					urlTable;
+	Button						createNew;
+	Button						urlCheck;
+	EditText					urlNameIn;
 
-	TableRow clearString;
-	TextView urlAddres;
-	TextView urlConnection;
+	TableRow					clearString;
+	TextView					urlAddres;
+	TextView					urlConnection;
 
-	SharedPreferences urlNames;
+	SharedPreferences			urlNames;
 
-	LayoutInflater inflater;
+	LayoutInflater				inflater;
 
-	CheckConnection connection;
+	CheckConnection				connection;
 
-	private static final String	TAG = "myLogs";
+	private static final String	TAG			= "myLogs";
 
-	int i = 1;
+	int							i			= 1;
 
-	public static final String	PREFS_NAME = "PrefeFile";
+	public static final String	PREFS_NAME	= "PrefeFile";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		
+
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
@@ -65,12 +65,14 @@ public class MainActivity extends Activity {
 
 		boolean existConnect = existOfConnection();
 		if (existConnect == true) {
-			Toast toast = Toast.makeText(getApplicationContext(), "Есть доступ к интернету :)", Toast.LENGTH_LONG);
+			Toast toast = Toast.makeText(getApplicationContext(),
+					"Есть доступ к интернету :)", Toast.LENGTH_LONG);
 			toast.show();
 		}
 
 		else {
-			Toast toast = Toast.makeText(getApplicationContext(), "Нет доступа к интернету :(", Toast.LENGTH_LONG);
+			Toast toast = Toast.makeText(getApplicationContext(),
+					"Нет доступа к интернету :(", Toast.LENGTH_LONG);
 			toast.show();
 		}
 
@@ -78,8 +80,19 @@ public class MainActivity extends Activity {
 
 		while (exist == true) {
 			if (urlNames.contains("valueOfURL_" + i) == true) {
-				createString(urlNames.getString("valueOfURL_" + i, "0"));
-				i += 1;
+
+				connection = new CheckConnection();
+				connection.execute(urlNames.getString("valueOfURL_" + i, "0"));
+
+				try {
+					createString(urlNames.getString("valueOfURL_" + i, "0"),
+							connection.get());
+					i += 1;
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					e.printStackTrace();
+				}
 			}
 
 			else
@@ -95,9 +108,22 @@ public class MainActivity extends Activity {
 				case R.id.createNew:
 
 					String textWithURL = urlNameIn.getText().toString();
-					createString(textWithURL);
+					int resultOfChecking;
+
+					connection = new CheckConnection();
+					connection.execute(textWithURL);
+
+					try {
+						createString(textWithURL, connection.get());
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					} catch (ExecutionException e) {
+						e.printStackTrace();
+					}
 					safeURlAdres(textWithURL, i);
 
+					connection = new CheckConnection();
+					connection.execute(textWithURL);
 					i += 1;
 
 					break;
@@ -115,14 +141,15 @@ public class MainActivity extends Activity {
 
 	}
 
-	public void createString(String textWithURL) {
+	public void createString(String textWithURL, String resultOfChecking) {
 
 		// Создание чистой строчки в таблице.
 		inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		clearString = (TableRow) inflater.inflate(R.layout.urlstring, null);
 		urlTable.addView(clearString);
 
-		// Инициализация ячйки в новой строчке + команда, без которой ничего не работает.
+		// Инициализация ячйки в новой строчке + команда, без которой ничего не
+		// работает.
 		urlAddres = (TextView) findViewById(R.id.urlAddres);
 		urlAddres = (TextView) clearString.getChildAt(0);
 
@@ -132,23 +159,11 @@ public class MainActivity extends Activity {
 		// Инициализация ячейки с значением доступа к ресурсу.
 		urlConnection = (TextView) findViewById(R.id.urlConnection);
 		urlConnection = (TextView) clearString.getChildAt(1);
-		
-		String connect = "0";
-		try {
-			connect = connection.get();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			Log.d(TAG, "Кинул InterruptedException из-за Connect");
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			Log.d(TAG, "Кинул ExecutionException из-за Connect");
-		}
-		if (connect == "1")
-			urlConnection.setText("Connect");
+
+		if (resultOfChecking == "1")
+			urlConnection.setText("Connection exist. Eye.");
 		else
-			urlConnection.setText("Not connect");
+			urlConnection.setText("Connection not exist. Oh well.");
 	}
 
 	public void safeURlAdres(String textWithURL, int i) {
@@ -175,12 +190,10 @@ public class MainActivity extends Activity {
 
 	}
 
-	class CheckConnection extends AsyncTask<String, Void, String> {
+	class CheckConnection extends AsyncTask<String, URL, String> {
 
 		@Override
 		protected String doInBackground(String... addresOfURL) {
-
-			// TODO Auto-generated method stub
 
 			try {
 				URL url = new URL(addresOfURL[0]);
@@ -193,16 +206,24 @@ public class MainActivity extends Activity {
 				int Code = urlc.getResponseCode();
 				if (Code == HttpURLConnection.HTTP_OK)
 					return "1";
-			}
+				else
+					return "0";
 
-			catch (MalformedURLException e) {
+			} catch (MalformedURLException e) {
 				Log.d(TAG, "Кинул MalformedURLException");
 			} catch (IOException e) {
 				Log.d(TAG, "Кинул IOException");
 			}
-			return "0";
 
+			return null;
 		}
+
+		/* @Override
+		 * protected void onPostExecute(String result){
+		 * 
+		 * super.onPostExecute(result);
+		 * 
+		 * } */
 
 	}
 
