@@ -1,17 +1,14 @@
-
 package com.firstandroidapplication;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.concurrent.ExecutionException;
+import java.util.TimerTask;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,30 +20,29 @@ import android.widget.EditText;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
 	TableLayout					urlTable;
-	Button						createNew;
 	Button						urlCheck;
+	Button						createNew;
 	EditText					urlNameIn;
+
+	LayoutInflater				inflater;
 
 	TableRow					clearString;
 	TextView					urlAddres;
 	TextView					urlConnection;
-
-	SharedPreferences			urlNames;
-
-	LayoutInflater				inflater;
-
+	
 	CheckConnection				connection;
 
-	private static final String	TAG			= "myLogs";
-
-	int							i			= 1;
-
+	SharedPreferences			urlNames;
 	public static final String	PREFS_NAME	= "PrefeFile";
+
+	boolean						ax;
+	int							i;							// Число строк.
+	int							j;
+	private static final String	TAG			= "myLogs";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -56,49 +52,33 @@ public class MainActivity extends Activity {
 
 		urlTable = (TableLayout) findViewById(R.id.urlTable);
 		createNew = (Button) findViewById(R.id.createNew);
-		urlCheck = (Button) findViewById(R.id.urlCheck);
-
 		urlNameIn = (EditText) findViewById(R.id.urlNameIn);
 
-		// Проверка сохраненных данных: если есть что загружать - оно загрузиться.
+		urlAddres = (TextView) findViewById(R.id.urlAddres);
+		urlConnection = (TextView) findViewById(R.id.urlConnection);
+
 		urlNames = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-		boolean existConnect = existOfConnection();
-		if (existConnect == true) {
-			Toast toast = Toast.makeText(getApplicationContext(),
-					"Есть доступ к интернету :)", Toast.LENGTH_LONG);
-			toast.show();
-		}
+		// Если есть что в памяти - запишет в таблицу.
+		ax = true;
+		i = 0;
 
-		else {
-			Toast toast = Toast.makeText(getApplicationContext(),
-					"Нет доступа к интернету :(", Toast.LENGTH_LONG);
-			toast.show();
-		}
-
-		boolean exist = true;
-
-		while (exist == true) {
+		while (ax == true) {
 			if (urlNames.contains("valueOfURL_" + i) == true) {
+				
+				String adress = urlNames.getString("valueOfURL_" + i, "----");
+				String connect = urlNames.getString("accessOfURL_" + i, "----");
 
-				connection = new CheckConnection();
-				connection.execute(urlNames.getString("valueOfURL_" + i, "0"));
-
-				try {
-					createString(urlNames.getString("valueOfURL_" + i, "0"),
-							connection.get());
-					i += 1;
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} catch (ExecutionException e) {
-					e.printStackTrace();
-				}
+				createString(adress, connect);
+				
+				i += 1;
 			}
 
 			else
-				exist = false;
+				ax = false;
 		}
 
+		// Обработчик кнопки new.
 		OnClickListener Listener = new OnClickListener() {
 
 			public void onClick(View w) {
@@ -108,85 +88,53 @@ public class MainActivity extends Activity {
 				case R.id.createNew:
 
 					String textWithURL = urlNameIn.getText().toString();
-					int resultOfChecking;
+					SharedPreferences.Editor edit = urlNames.edit();
 
+					edit.putString("valueOfURL_" + i, textWithURL);
+					edit.apply();
+					
 					connection = new CheckConnection();
 					connection.execute(textWithURL);
 
-					try {
-						createString(textWithURL, connection.get());
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					} catch (ExecutionException e) {
-						e.printStackTrace();
-					}
-					safeURlAdres(textWithURL, i);
-
-					connection = new CheckConnection();
-					connection.execute(textWithURL);
-					i += 1;
+					String adress = urlNames.getString("valueOfURL_" + i, "----");
+					String connect = urlNames.getString("accessOfURL_" + i, "----");
+					
+					createString(adress, connect);
+					
+					i+=1;
 
 					break;
 
-				case R.id.urlCheck:
-
-					break;
 				}
-
 			}
 		};
 
 		createNew.setOnClickListener(Listener);
-		urlCheck.setOnClickListener(Listener);
 
 	}
 
-	public void createString(String textWithURL, String resultOfChecking) {
+	public void createString(String textWithURL, String urlConnectionCheck) {
 
-		// Создание чистой строчки в таблице.
+		// Создание чистой строчки в таблице и присваиваем ей порядок в ней.
 		inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		clearString = (TableRow) inflater.inflate(R.layout.urlstring, null);
 		urlTable.addView(clearString);
 
-		// Инициализация ячйки в новой строчке + команда, без которой ничего не
-		// работает.
-		urlAddres = (TextView) findViewById(R.id.urlAddres);
-		urlAddres = (TextView) clearString.getChildAt(0);
+		clearString = (TableRow) urlTable.getChildAt(i);
 
-		// Передача этой ячейке текста.
+		// Инициализация ячйки с адрессом в новой строчке и присваиваем ей порядок в строке.		
+		j = 0;
+		urlAddres = (TextView) clearString.getChildAt(j);
+
+		// Передаем этой ячейке текст.
 		urlAddres.setText(textWithURL);
-
-		// Инициализация ячейки с значением доступа к ресурсу.
-		urlConnection = (TextView) findViewById(R.id.urlConnection);
-		urlConnection = (TextView) clearString.getChildAt(1);
-
-		if (resultOfChecking == "1")
-			urlConnection.setText("Connection exist. Eye.");
-		else
-			urlConnection.setText("Connection not exist. Oh well.");
-	}
-
-	public void safeURlAdres(String textWithURL, int i) {
-
-		// Запись значений в хранилище.
-		urlNames = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-		SharedPreferences.Editor edit = urlNames.edit();
-
-		edit.putString("valueOfURL_" + i, textWithURL);
-		edit.apply();
-	}
-
-	public boolean existOfConnection() {
-
-		ConnectivityManager connect = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo infoNet = connect.getActiveNetworkInfo();
-
-		if (connect != null && infoNet.isConnected() == true) {
-			return true;
-		}
-
-		else
-			return false;
+		
+		// Инициализация ячйки со статусом соединения в новой строчке и присваиваем ей порядок в строке.
+		j = 1;
+		urlConnection = (TextView) clearString.getChildAt(j);
+		
+		// Передаем этой ячейке текст.
+		urlConnection.setText(urlConnectionCheck);
 
 	}
 
@@ -200,14 +148,21 @@ public class MainActivity extends Activity {
 				HttpURLConnection urlc = (HttpURLConnection) url
 						.openConnection();
 				urlc.setRequestProperty("Connection", "close");
-				urlc.setConnectTimeout(10000);
+				urlc.setConnectTimeout(5000);
 				urlc.connect();
 
 				int Code = urlc.getResponseCode();
-				if (Code == HttpURLConnection.HTTP_OK)
-					return "1";
-				else
-					return "0";
+				SharedPreferences.Editor edit = urlNames.edit();
+				
+				if (Code == HttpURLConnection.HTTP_OK) {	
+					edit.putString("accessOfURL_" + i, "Connection exist. Eye.");
+					edit.apply();
+				}
+				
+				else {
+					edit.putString("accessOfURL_" + i, "Connection not exist. Oh well.");
+					edit.apply();
+				}
 
 			} catch (MalformedURLException e) {
 				Log.d(TAG, "Кинул MalformedURLException");
@@ -218,13 +173,21 @@ public class MainActivity extends Activity {
 			return null;
 		}
 
-		/* @Override
-		 * protected void onPostExecute(String result){
-		 * 
-		 * super.onPostExecute(result);
-		 * 
-		 * } */
-
 	}
 
+	class CheckConnectionTimer extends TimerTask{		
+
+		@Override
+		public void run() {
+			
+			if (urlNames.contains("valueOfURL_" + i) == true){
+				
+				connection = new CheckConnection();
+				connection.execute("valueOfURL" + i);
+				
+				i +=1;
+			}
+				
+		}		
+	}
 }
