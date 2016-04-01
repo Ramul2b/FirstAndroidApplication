@@ -10,5 +10,8 @@
         android:id="@+id/urlConnection"
         android:text="" />
 
+    <TextView 
+        android:id="@+id/urlTime"
+        android:text="" />
 
 </TableRow>

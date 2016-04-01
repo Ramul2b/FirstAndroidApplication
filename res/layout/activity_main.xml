@@ -13,12 +13,6 @@
     </TableLayout>
 
     <Button
-        android:id="@+id/urlCheck"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Check" />
-
-    <Button
         android:id="@+id/createNew"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -31,11 +25,5 @@
         android:ems="10"
         android:inputType="textEmailAddress" >       
     </EditText>
-
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TextView" />
             
  </LinearLayout>
